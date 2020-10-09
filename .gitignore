@@ -1,0 +1,15 @@
+process*.*
+philosophers.*
+barrier_test.*
+tasks.*
+th*.*
+*~
+image
+kernel
+process1
+process2
+*.o
+.depend
+serial.out
+log.txt
+bochsout.txt
