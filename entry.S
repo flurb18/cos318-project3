@@ -74,7 +74,7 @@
 #define TEST_NESTED_COUNT \
         movl    %eax, scratch   ; \
         movl    current_running, %eax ; \
-        movl    (NESTED_COUNT)(%eax), %eax ; \
+        movl    NESTED_COUNT(%eax), %eax ; \
         testl   %eax, %eax      ; \
         movl    scratch, %eax
 # TODO END
@@ -131,30 +131,33 @@ syscall_entry:
 .globl  irq0_entry
 irq0_entry:
     SEND_EOI # Acknowledge the hardware interrupt
+    pushal
+
     # Increment time_elapsed
     movl    %eax, scratch
     movl    $time_elapsed, %eax
     addl    $1, (%eax)
     adcl    $0, 4(%eax)
-    movl    scratch, %eax
+    movl    scratch, %eax    
     # Increment disable_count to reflect the fact that interrupts are off
     cli
     ENTER_CRITICAL
     # Test nested_count
     TEST_NESTED_COUNT
     jnz return # nested_count no zero, so do nothing
-
+        
     # Do system call
+
     call    put_current_running
     call    scheduler_entry
-    
+
 return:
     # Check the sleeping processes and wake them up on time
     call    check_sleeping
+    popal
     # Decrement disable_count in anticipation of iret
     LEAVE_CRITICAL
     sti
-    
     iret
 # TODO END
 
