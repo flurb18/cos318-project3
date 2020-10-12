@@ -17,9 +17,9 @@ static void draw(int loc_x, int loc_y, int plane);
 
 void _start(void) {
     int loc_x = 80, loc_y = 1;
-    /* Reserved for Extra Credit
+    // Reserved for Extra Credit
     int count = 0;
-    unsigned int pid,pri; */
+    unsigned int pid,pri;
 
     while (1) {
         // Erase plane
@@ -32,7 +32,7 @@ void _start(void) {
         // Draw plane
         draw(loc_x, loc_y, TRUE);
 
-        /* Reserved for Extra Credit
+        // Reserved for Extra Credit
         if (count++ % 100) {
             pid = getpid();
             pri = getpriority();
@@ -42,7 +42,7 @@ void _start(void) {
             } else {
                 setpriority(10);
             }
-        } */
+        }
 
         sleep(500);
     }

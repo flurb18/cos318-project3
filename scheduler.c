@@ -31,8 +31,15 @@ void scheduler() {
     leave_critical();
     enter_critical();
   }
-  current_running = (pcb_t *) dequeue(&ready_queue);
-  ASSERT(NULL != current_running);
+  while(1) {
+    current_running = (pcb_t *) dequeue(&ready_queue);
+    ASSERT(NULL != current_running);
+    if (!(rand() % current_running->priority)) {
+      break;
+    } else {
+      put_current_running();
+    }
+  }
   ++current_running->entry_count;
 }
 

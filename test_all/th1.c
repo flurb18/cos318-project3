@@ -8,7 +8,7 @@
 // This thread runs indefinitely, which means that the scheduler should never
 // run out of processes
 void clock_thread(void) {
-    /* Reserved for Extra Credit
+  // Reserved for Extra Credit
     printf(6, 48, "Extra credit (attempted):");
 #ifdef EC_DEADLOCK
     printf(7, 52, "Deadlock Detection");
@@ -20,7 +20,7 @@ void clock_thread(void) {
     printf(8, 52, "Priority Scheduling");
 #else
     printf(8, 52, "-");
-#endif */
+#endif
     
     while (TRUE) {
         int t;
