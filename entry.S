@@ -74,7 +74,7 @@
 #define TEST_NESTED_COUNT \
         movl    %eax, scratch   ; \
         movl    current_running, %eax ; \
-        movl    NESTED_COUNT(%eax), %eax ; \
+        movl    (NESTED_COUNT)(%eax), %eax ; \
         testl   %eax, %eax      ; \
         movl    scratch, %eax
 # TODO END

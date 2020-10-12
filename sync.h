@@ -20,13 +20,22 @@ typedef struct {
 } lock_t;
 
 // TODO: Define the condition_t structure
-typedef struct {} condition_t;
+typedef struct {
+  node_t wait_queue;
+} condition_t;
 
 // TODO: Define the semaphore_t structure
-typedef struct {} semaphore_t;
+typedef struct {
+  int val;
+  node_t wait_queue;
+} semaphore_t;
 
 // TODO: Define the barrier_t structure
-typedef struct {} barrier_t;
+typedef struct {
+  int num;
+  int target;
+  node_t wait_queue;
+} barrier_t;
 
 // Lock functions
 void lock_init(lock_t *);

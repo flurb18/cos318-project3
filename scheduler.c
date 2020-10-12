@@ -19,7 +19,7 @@ volatile uint64_t time_elapsed;
 
 // TODO: Round-robin scheduling: Save current_running before preempting
 void put_current_running() {
-  enqueue(&ready_queue, (node_t *) &current_running);
+  unblock(current_running);
 }
 
 // Change current_running to the next task
@@ -34,17 +34,29 @@ void scheduler() {
   ++current_running->entry_count;
 }
 
+// Comparison function of deadline in pcb
+int compare_deadline(node_t *a, node_t *b) {
+  return (((pcb_t *) a)->deadline < ((pcb_t *) b)->deadline);
+}
+
 // TODO: Blocking sleep
 void do_sleep(int milliseconds) {
   ASSERT(!disable_count);
-  uint64_t deadline;
-  
-  deadline = time_elapsed + milliseconds;
-  while (time_elapsed < deadline) {}
+  enter_critical();
+  current_running->deadline = time_elapsed + milliseconds;
+  enqueue_sort(&sleep_wait_queue, &current_running->node, &compare_deadline);
+  scheduler_entry();
+  leave_critical();
 }
 
 // TODO: Check if we can wake up sleeping processes
-void check_sleeping() {}
+void check_sleeping() {
+  if (!is_empty(&sleep_wait_queue)) { 
+    while (((pcb_t *) peek(&sleep_wait_queue))->deadline < time_elapsed) {
+      enqueue(&ready_queue, dequeue(&sleep_wait_queue));
+    }
+  }
+}
 
 /* DO NOT MODIFY ANY OF THE FOLLOWING FUNCTIONS */
 
