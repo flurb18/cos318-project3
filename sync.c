@@ -93,14 +93,15 @@ void lock_release(lock_t * l) {
     leave_critical();
 }
 
-// TODO: Initialize a condition variable
+// Initialize a condition variable
 void condition_init(condition_t * c) {
   queue_init(&c->wait_queue);
 }
 
-// TODO: Release lock m and block the thread enqueued on c; when unblocked,
+// Release lock m and block the thread enqueued on c; when unblocked,
 // re-acquire m
 void condition_wait(lock_t * m, condition_t * c) {
+  ASSERT(!disable_count);
   lock_release(m);
   enter_critical();
   block(&c->wait_queue);
@@ -108,53 +109,59 @@ void condition_wait(lock_t * m, condition_t * c) {
   lock_acquire(m);
 }
 
-// TODO: Unblock the first thread waiting on c, if it exists
+// Unblock the first thread waiting on c, if it exists
 void condition_signal(condition_t * c) {
+  ASSERT(!disable_count);
   enter_critical();
   unblock_one(&c->wait_queue);
   leave_critical();
 }
 
-// TODO: Unblock all threads waiting on c
+// Unblock all threads waiting on c
 void condition_broadcast(condition_t * c) {
+  ASSERT(!disable_count);
   enter_critical();
   unblock_all(&c->wait_queue);
   leave_critical();
 }
 
-// TODO: Initialize a semaphore with the specified value >= 0
+// Initialize a semaphore with the specified value >= 0
 void semaphore_init(semaphore_t * s, int value) {
   ASSERT(value >= 0);
   s->val = value;
   queue_init(&s->wait_queue);
 }
 
-// TODO: Increment the semaphore value atomically
+// Increment the semaphore value atomically
 void semaphore_up(semaphore_t * s) {
+  ASSERT(!disable_count);
   enter_critical();
   if (s->val++ < 0)
     ASSERT(unblock_one(&s->wait_queue) == TRUE);
   leave_critical();
 }
 
-// TODO: Block until the semaphore value is greater than zero and decrement it
+// Block until the semaphore value is greater than zero and decrement it
 void semaphore_down(semaphore_t * s) {
+  ASSERT(!disable_count);
   enter_critical();
   if (--s->val < 0)
     block(&s->wait_queue);
   leave_critical();
 }
 
-// TODO: Initialize a barrier where n is number of threads that rendezvous at the
+// Initialize a barrier where n is number of threads that rendezvous at the
 // barrier
 void barrier_init(barrier_t * b, int n) {
+  ASSERT(n > 0);
   b->num = 0;
   b->target = n;
   queue_init(&b->wait_queue);
 }
 
-// TODO: Block until all n threads have called barrier_wait
+// Block until all n threads have called barrier_wait
 void barrier_wait(barrier_t * b) {
+  ASSERT(!disable_count);
   enter_critical();
   if (++b->num == b->target) {
     // Dequeue all nodes on the wait queue onto the ready queue

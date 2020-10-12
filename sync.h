@@ -19,18 +19,20 @@ typedef struct {
     pcb_t* held_task;
 } lock_t;
 
-// TODO: Define the condition_t structure
+// Condition variable just needs a queue
 typedef struct {
   node_t wait_queue;
 } condition_t;
 
-// TODO: Define the semaphore_t structure
+// Fields are the semaphore value (number of resources available), wait queue
 typedef struct {
   int val;
   node_t wait_queue;
 } semaphore_t;
 
-// TODO: Define the barrier_t structure
+/* In a barrier we need to keep track of the number of threads that have
+   waited (num), the target for this number which when reached the barrier will
+   be released, and the queue of threads waiting on the barrier */ 
 typedef struct {
   int num;
   int target;

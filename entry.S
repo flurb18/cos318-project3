@@ -127,18 +127,16 @@ syscall_entry:
     LEAVE_CRITICAL
     iret
 
-# TODO START: Timer interrupt handler
+# Timer interrupt handler
 .globl  irq0_entry
 irq0_entry:
     SEND_EOI # Acknowledge the hardware interrupt
-    pushal
-
+    pushal # Push general registers, some of which are clobbered by calling
+           # C functions
     # Increment time_elapsed
-    movl    %eax, scratch
     movl    $time_elapsed, %eax
     addl    $1, (%eax)
     adcl    $0, 4(%eax)
-    movl    scratch, %eax    
     # Increment disable_count to reflect the fact that interrupts are off
     cli
     ENTER_CRITICAL
@@ -147,17 +145,18 @@ irq0_entry:
     jnz return # nested_count no zero, so do nothing
         
     # Do system call
-
     call    put_current_running
     call    scheduler_entry
 
 return:
     # Check the sleeping processes and wake them up on time
     call    check_sleeping
-    popal
+
     # Decrement disable_count in anticipation of iret
     LEAVE_CRITICAL
     sti
+    # Pop general registers
+    popal
     iret
 # TODO END
 

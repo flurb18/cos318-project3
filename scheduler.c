@@ -17,8 +17,10 @@ node_t sleep_wait_queue;
 // More variables...
 volatile uint64_t time_elapsed;
 
-// TODO: Round-robin scheduling: Save current_running before preempting
+// Round-robin scheduling: Save current_running before preempting
 void put_current_running() {
+  ASSERT(disable_count);
+  // Put it on the ready queue
   unblock(current_running);
 }
 
@@ -39,21 +41,29 @@ int compare_deadline(node_t *a, node_t *b) {
   return (((pcb_t *) a)->deadline < ((pcb_t *) b)->deadline);
 }
 
-// TODO: Blocking sleep
+/* Blocking sleep
+   Calculate deadline (timestamp when task should be awakened), set it in
+   the pcb, and insert it into the sleep wait queue at the right place, then
+   set the status and yield control to the scheduler */
 void do_sleep(int milliseconds) {
   ASSERT(!disable_count);
   enter_critical();
+  current_running->status = BLOCKED;
   current_running->deadline = time_elapsed + milliseconds;
   enqueue_sort(&sleep_wait_queue, &current_running->node, &compare_deadline);
   scheduler_entry();
   leave_critical();
 }
 
-// TODO: Check if we can wake up sleeping processes
+/* Check if we can wake up sleeping processes.
+   Sleep wait queue is sorted by deadline in ascending order, so we just keep
+   popping off elements from the front of the queue until the front of the
+   queues deadline is greater than or equal to time_elapsed */
 void check_sleeping() {
+  ASSERT(disable_count);
   if (!is_empty(&sleep_wait_queue)) { 
-    while (((pcb_t *) peek(&sleep_wait_queue))->deadline < time_elapsed) {
-      enqueue(&ready_queue, dequeue(&sleep_wait_queue));
+    while (((pcb_t *) peek(&sleep_wait_queue))->deadline < time_elapsed) { 
+     unblock((pcb_t *) dequeue(&sleep_wait_queue));
     }
   }
 }
