@@ -18,7 +18,7 @@ node_t sleep_wait_queue;
 volatile uint64_t time_elapsed;
 
 // Change this to TRUE to implement extra credit priority scheduling
-enum {EXTRA_CREDIT = TRUE};
+enum {EXTRA_CREDIT = FALSE};
 
 // Comparison function of priority-time; used in unblock() (see README)
 int compare_ptime(node_t *a, node_t *b) {
