@@ -17,11 +17,28 @@ node_t sleep_wait_queue;
 // More variables...
 volatile uint64_t time_elapsed;
 
+// Change this to TRUE to implement extra credit priority scheduling
+enum {EXTRA_CREDIT = TRUE};
+
+// Comparison function of priority-time; used in unblock() (see README)
+int compare_ptime(node_t *a, node_t *b) {
+  ASSERT(disable_count);
+  pcb_t *apcb = (pcb_t *) a;
+  pcb_t *bpcb = (pcb_t *) b;
+  return \
+  (apcb->priority * apcb->entry_count < bpcb->priority * bpcb->entry_count);  
+}
+
+// Comparison function of deadline in pcb; used in do_sleep()
+int compare_deadline(node_t *a, node_t *b) {
+  return (((pcb_t *) a)->deadline < ((pcb_t *) b)->deadline);
+}
+
 // Round-robin scheduling: Save current_running before preempting
 void put_current_running() {
   ASSERT(disable_count);
   // Put it on the ready queue
-  unblock(current_running);
+  unblock(current_running);  
 }
 
 // Change current_running to the next task
@@ -31,21 +48,9 @@ void scheduler() {
     leave_critical();
     enter_critical();
   }
-  while(1) {
-    current_running = (pcb_t *) dequeue(&ready_queue);
-    ASSERT(NULL != current_running);
-    if (!(rand() % current_running->priority)) {
-      break;
-    } else {
-      put_current_running();
-    }
-  }
+  current_running = (pcb_t *) dequeue(&ready_queue);
+  ASSERT(NULL != current_running);
   ++current_running->entry_count;
-}
-
-// Comparison function of deadline in pcb
-int compare_deadline(node_t *a, node_t *b) {
-  return (((pcb_t *) a)->deadline < ((pcb_t *) b)->deadline);
 }
 
 /* Blocking sleep
@@ -98,10 +103,15 @@ void block(node_t * wait_queue) {
   scheduler_entry();
 }
 
+// We modify this function slightly to implement extra credit
 void unblock(pcb_t * task) {
   ASSERT(disable_count);
   task->status = READY;
-  enqueue(&ready_queue, (node_t *) task);
+  if (EXTRA_CREDIT) {
+    enqueue_sort(&ready_queue, (node_t *) task, &compare_ptime);
+  } else {
+    enqueue(&ready_queue, (node_t *) task);
+  }
 }
 
 pid_t do_getpid() {

@@ -1,0 +1,41 @@
+For our preemptive scheduler, we followed the pseudocode and guidelines as
+discussed in the Design Review.
+
+To implement blocking sleep, the sleep wait queue is kept sorted in order by
+deadline, and check_sleeping pops all the tasks with deadlines that have
+passed off of this queue onto the ready queue.
+
+Our semaphores, condition variables, and
+barriers each have a blocking queue associated with them; when tasks use the
+structure (i.e. waiting for barriers or condition variables, and down for
+semaphores) they are placed on the queue until they are ready to be unblocked
+as per the design of the structure. Condition variables need only a queue
+associated with them, which is released using the signal and broadcast
+functions; Semaphores save their integer value ("number of resources currently
+available") and their queue; and barriers save the current number of threads
+waiting on the barrier, the target number of threads at which point the barrier
+is released, and the queue.
+
+For the extra credit, instead of having the ready queue just be FIFO, the tasks
+are kept sorted in ascending order by priority * entry_count. The reason we
+chose this style of implementation was because this will distribute the
+scheduler entries proprtionally to each tasks priority; if one task (t1) has
+priority p, and another task (t2) has priority c*p, the first task will occur
+in the queue later than the second if and only if
+
+p*t1->entry_count > c*p*t2->entry_count
+
+Dividing by p, this is equivalent to
+
+t1->entry_count > c*t2->entry_count
+
+So t2->entry_count will be kept at approximately 1/c of t1->entry_count; in
+other words, the second task will be given 1/c the entries of the first.
+
+The extra credit is disabled by default; to change it, set
+
+enum {EXTRA_CREDIT = TRUE};
+
+in scheduler.c.
+
+The project is compiled and run using the provided Makefile and settest script.
